@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.ecocode</groupId>
+    <parent>
+        <groupId>io.ecocode</groupId>
+        <artifactId>ecocode-java</artifactId>
+        <version>1.6.2-SNAPSHOT</version>
+    </parent>
+
     <artifactId>ecocode-java-plugin-test-project</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
 
     <name>ecoCode Java Sonar Plugin Test Project</name>
 
@@ -13,6 +16,7 @@
         <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
 
         <sonar.java.binaries>target</sonar.java.binaries>
 
@@ -33,5 +37,4 @@
             <version>5.3.25</version>
         </dependency>
     </dependencies>
-
 </project>

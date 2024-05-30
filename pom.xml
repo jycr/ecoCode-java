@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>io.ecocode</groupId>
+	<artifactId>ecocode-java</artifactId>
+	<version>1.6.2-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>ecocode-java-plugin</module>
+		<module>ecocode-java-plugin-test-project</module>
+	</modules>
+	<properties>
+		<java.version>11</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<!-- to prevent message: system modules path not set in conjunction with -source 11 -->
+		<maven.compiler.release>${java.version}</maven.compiler.release>
+
+		<encoding>UTF-8</encoding>
+		<project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
+	</properties>
+</project>
