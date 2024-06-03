@@ -37,6 +37,7 @@ public class AvoidStatementForDMLQueries extends IssuableSubscriptionVisitor {
 
     protected static final String MESSAGERULE = "You must not use Statement for a DML query";
 
+    // Use re2j for security on regex patterns : https://github.com/google/re2j
     private static final Pattern PATTERN = Pattern.compile("(SELECT|INSERT INTO|UPDATE|DELETE FROM)\\s?.*", Pattern.CASE_INSENSITIVE);
 
     private static final MethodMatchers EXECUTE_METHOD = MethodMatchers.or(

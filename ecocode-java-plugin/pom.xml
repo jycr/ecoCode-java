@@ -39,39 +39,22 @@
     </issueManagement>
 
     <properties>
+        <java.version>11</java.version>
+
         <sonar.organization>green-code-initiative</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-
-        <sonarqube.version>9.4.0.54424</sonarqube.version>
-        <sonarjava.version>7.19.0.31550</sonarjava.version>
-
-        <sonar-analyzer-commons.version>2.5.0.1358</sonar-analyzer-commons.version>
-
-        <sonar-packaging.version>1.23.0.740</sonar-packaging.version>
-
-        <junit.jupiter.version>5.9.1</junit.jupiter.version>
-        <assertJ.version>3.23.1</assertJ.version>
-        <mockito.version>5.3.1</mockito.version>
-
-        <google.re2j>1.7</google.re2j>
-
-        <!-- temporary version waiting for real automatic release in ecocode repository -->
-        <ecocode-rules-specifications.version>1.5.1</ecocode-rules-specifications.version>
-
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>io.ecocode</groupId>
             <artifactId>ecocode-rules-specifications</artifactId>
-            <version>${ecocode-rules-specifications.version}</version>
             <classifier>java</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.sonarsource.java</groupId>
             <artifactId>sonar-java-plugin</artifactId>
-            <version>${sonarjava.version}</version>
             <type>sonar-plugin</type>
             <scope>provided</scope>
         </dependency>
@@ -79,56 +62,47 @@
         <dependency>
             <groupId>org.sonarsource.sonarqube</groupId>
             <artifactId>sonar-plugin-api</artifactId>
-            <version>${sonarqube.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.sonarsource.analyzer-commons</groupId>
             <artifactId>sonar-analyzer-commons</artifactId>
-            <version>${sonar-analyzer-commons.version}</version>
         </dependency>
 
-        <!-- for security on regex patterns : https://github.com/google/re2j -->
         <dependency>
             <groupId>com.google.re2j</groupId>
             <artifactId>re2j</artifactId>
-            <version>${google.re2j}</version>
         </dependency>
 
         <!-- TEST sources dependencies -->
         <dependency>
             <groupId>org.sonarsource.java</groupId>
             <artifactId>java-checks-testkit</artifactId>
-            <version>${sonarjava.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${assertJ.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
-            <version>0.10.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -136,19 +110,8 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
-            </plugin>
-            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.10</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -167,7 +130,6 @@
             <plugin>
                 <groupId>org.sonarsource.sonar-packaging-maven-plugin</groupId>
                 <artifactId>sonar-packaging-maven-plugin</artifactId>
-                <version>${sonar-packaging.version}</version>
                 <extensions>true</extensions>
                 <configuration>
                     <pluginKey>ecocodejava</pluginKey>
@@ -187,7 +149,6 @@
             <plugin><!-- plugin to generate a unique build number for sonar-packaging-maven-plugin : usage of buildNumber variable -->
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <phase>validate</phase>
@@ -201,10 +162,9 @@
                     <revisionOnScmFailure>0</revisionOnScmFailure>
                 </configuration>
             </plugin>
-            <plugin><!-- shade plugin configuration is on parent pom.xml because of use for other modules -->
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -242,7 +202,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.6.0</version>
                 <executions>
                     <!-- only for unit tests ("test-jars" directory used in classpath) -->
                     <execution>
@@ -310,7 +269,6 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>4.1</version>
                 <configuration>
                     <properties>
                         <owner>Green Code Initiative</owner>

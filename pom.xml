@@ -11,8 +11,9 @@
 		<module>ecocode-java-plugin</module>
 		<module>ecocode-java-plugin-test-project</module>
 	</modules>
+
 	<properties>
-		<java.version>11</java.version>
+		<java.version>17</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<!-- to prevent message: system modules path not set in conjunction with -source 11 -->
@@ -21,5 +22,155 @@
 		<encoding>UTF-8</encoding>
 		<project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
+
+
+		<sonarqube.version>9.9.5.90363</sonarqube.version>
+		<sonarjava.version>7.32.0.35531</sonarjava.version>
+
+		<!-- URL of the Maven repository where sonarqube will be downloaded -->
+		<orchestrator.artifactory.url>https://repo1.maven.org/maven2</orchestrator.artifactory.url>
+
+		<sonar-packaging.version>1.23.0.740</sonar-packaging.version>
+
+		<!-- Keep following versions in properties to make it easier to overload version if necessary -->
+
+		<!-- temporary version waiting for real automatic release in ecocode repository -->
+		<ecocode-rules-specifications.version>1.5.4</ecocode-rules-specifications.version>
+		<sonarqube.version>9.4.0.54424</sonarqube.version>
+		<sonarjava.version>7.19.0.31550</sonarjava.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.ecocode</groupId>
+				<artifactId>ecocode-rules-specifications</artifactId>
+				<version>${ecocode-rules-specifications.version}</version>
+				<classifier>java</classifier>
+			</dependency>
+
+			<dependency>
+				<groupId>org.sonarsource.sonarqube</groupId>
+				<artifactId>sonar-plugin-api</artifactId>
+				<version>${sonarqube.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.sonarsource.analyzer-commons</groupId>
+				<artifactId>sonar-analyzer-commons</artifactId>
+				<version>2.11.0.2861</version>
+			</dependency>
+			<dependency>
+				<groupId>org.sonarsource.java</groupId>
+				<artifactId>java-checks-testkit</artifactId>
+				<version>${sonarjava.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.sonarsource.java</groupId>
+				<artifactId>sonar-java-plugin</artifactId>
+				<version>${sonarjava.version}</version>
+				<type>sonar-plugin</type>
+			</dependency>
+
+			<dependency>
+				<groupId>com.google.re2j</groupId>
+				<artifactId>re2j</artifactId>
+				<version>1.7</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.reflections</groupId>
+				<artifactId>reflections</artifactId>
+				<version>0.10.2</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>5.10.2</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.assertj</groupId>
+				<artifactId>assertj-core</artifactId>
+				<version>3.26.0</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-junit-jupiter</artifactId>
+				<version>5.12.0</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.11.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.1.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>0.8.10</version>
+				</plugin>
+				<plugin>
+					<groupId>org.sonarsource.sonar-packaging-maven-plugin</groupId>
+					<artifactId>sonar-packaging-maven-plugin</artifactId>
+					<version>${sonar-packaging.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>buildnumber-maven-plugin</artifactId>
+					<version>3.1.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>3.5.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>3.6.0</version>
+					<version>3.6.0</version></plugin>
+				<plugin>
+					<groupId>com.mycila</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>4.1</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<id>enforce-maven</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireMavenVersion>
+									<version>3.6.3</version>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
