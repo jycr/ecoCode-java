@@ -1,5 +1,6 @@
 {
-  "name": "ecoCode",
+  "name": "ecoCode way",
+  "language": "java",
   "ruleKeys": [
 	"EC1",
 	"EC2",

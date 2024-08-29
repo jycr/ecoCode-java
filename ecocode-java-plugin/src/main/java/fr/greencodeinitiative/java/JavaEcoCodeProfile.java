@@ -25,7 +25,7 @@ import static fr.greencodeinitiative.java.JavaRulesDefinition.REPOSITORY_KEY;
 
 public final class JavaEcoCodeProfile implements BuiltInQualityProfilesDefinition {
 	static final String PROFILE_NAME = "ecoCode";
-	private static final String PROFILE_PATH = JavaEcoCodeProfile.class.getPackageName().replace('.', '/') + "/ecocode_profile.json";
+	public static final String PROFILE_PATH = JavaEcoCodeProfile.class.getPackageName().replace('.', '/') + "/ecocode_profile.json";
 
 	@Override
 	public void define(Context context) {

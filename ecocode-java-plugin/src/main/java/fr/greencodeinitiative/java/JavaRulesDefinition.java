@@ -28,10 +28,10 @@ import org.sonarsource.analyzer.commons.RuleMetadataLoader;
  * That allows to list the rules in the page "Rules".
  */
 public class JavaRulesDefinition implements RulesDefinition {
-    private static final String RESOURCE_BASE_PATH = "io/ecocode/rules/java";
+    public static final String RESOURCE_BASE_PATH = "io/ecocode/rules/java";
 
     private static final String NAME = "ecoCode";
-    static final String LANGUAGE = "java";
+    public static final String LANGUAGE = "java";
     static final String REPOSITORY_KEY = "ecocode-java";
 
     private final SonarRuntime sonarRuntime;
