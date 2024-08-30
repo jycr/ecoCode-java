@@ -16,6 +16,7 @@ import com.sonar.orchestrator.locator.URLLocation;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.sonar.java.test.classpath.TestClasspathUtils;
@@ -59,6 +60,31 @@ class LaunchSonarqubeAndBuildProjectIT {
 		LOGGER.log(INFO, () -> MessageFormat.format("SonarQube server available on: {0}", ORCHESTRATOR.getServer().getUrl()));
 	}
 
+	@AfterAll
+	static void tearDown() {
+		if ("true".equalsIgnoreCase(System.getProperty("sonar.keepRunning"))) {
+			try (Scanner in = new Scanner(System.in)) {
+				LOGGER.log(INFO, () ->
+						MessageFormat.format(
+								"\n" +
+										"\n====================================================================================================" +
+										"\nSonarQube available at: {0} (to login: admin/admin)" +
+										"\n====================================================================================================" +
+										"\n",
+								ORCHESTRATOR.getServer().getUrl()
+						)
+				);
+				do {
+					LOGGER.log(INFO, "✍ Please press ENTER to stop");
+				}
+				while (!in.nextLine().isEmpty());
+			}
+		}
+		if (ORCHESTRATOR != null) {
+			ORCHESTRATOR.stop();
+		}
+	}
+
 	/**
 	 * Path of the plugin project containing the implementation of the rule we are working on
 	 */
@@ -95,23 +121,12 @@ class LaunchSonarqubeAndBuildProjectIT {
 
 		MavenBuild build = MavenBuild.create(getTestProjectDir().resolve("pom.xml").toFile())
 		                             .setCleanPackageSonarGoals()
-		                             .setDebugLogs(true)
+//		                             .setDebugLogs(true)
                                      .setProperty("sonar.projectKey", PROJECT_KEY)
                                      .setProperty("sonar.projectName", PROJECT_NAME)
                                      .setProperty("sonar.scm.disabled", "true");
 
 		ORCHESTRATOR.executeBuild(build);
-
-		try (Scanner in = new Scanner(System.in)) {
-			LOGGER.log(INFO, () ->
-					MessageFormat.format(
-							"SonarQube available to: {0} (to login: admin/admin) Please press enter to stop.",
-							ORCHESTRATOR.getServer().getUrl()
-					)
-			);
-			while (!in.nextLine().isEmpty()) {
-			}
-		}
 	}
 
 	private static String getMavenProperty(String propertyName) {
