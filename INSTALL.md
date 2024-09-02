@@ -14,11 +14,10 @@ Project structure
 Here is a preview of project tree :
 
 ```txt
-ecoCode-java             # Root directory
-|
-+--src                  # source directory
-|
-\--docker-compose.yml   # Docker compose file
+📂 ecoCode-java              # Root directory
+├─📂 ecocode-java-plugin     # SonarQube plugin directory
+│ └─📂 src                   # source directory
+└─📄 docker-compose.yml      # Docker compose file
 ```
 
 You will find more information about the plugins’ architecture in their folders

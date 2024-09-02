@@ -6,8 +6,6 @@ FROM maven:${MAVEN_BUILDER} AS builder
 COPY . /usr/src/ecocode
 
 WORKDIR /usr/src/ecocode
-COPY src src/
-COPY pom.xml tool_build.sh ./
 
 RUN ./tool_build.sh
 
