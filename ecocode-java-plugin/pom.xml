@@ -2,10 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.ecocode</groupId>
+    <parent>
+        <groupId>io.ecocode</groupId>
+        <artifactId>ecocode-java</artifactId>
+        <version>1.6.3-SNAPSHOT</version>
+    </parent>
+
     <artifactId>ecocode-java-plugin</artifactId>
-    <version>1.6.3-SNAPSHOT</version>
-    
     <packaging>sonar-plugin</packaging>
 
     <name>ecoCode - Java language</name>
@@ -17,7 +20,6 @@
         <name>green-code-initiative</name>
         <url>https://github.com/green-code-initiative</url>
     </organization>
-
     <licenses>
         <license>
             <name>GPL v3</name>
@@ -32,7 +34,6 @@
         <url>https://github.com/green-code-initiative/ecocode-java</url>
         <tag>HEAD</tag>
     </scm>
-
     <issueManagement>
         <system>GitHub</system>
         <url>https://github.com/green-code-initiative/ecoCode-java/issues</url>
@@ -195,8 +196,7 @@
                     </archive>
                 </configuration>
             </plugin>
-            <plugin>
-                <!-- plugin to generate a unique build number for sonar-packaging-maven-plugin : usage of buildNumber variable -->
+            <plugin><!-- plugin to generate a unique build number for sonar-packaging-maven-plugin : usage of buildNumber variable -->
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
                 <version>3.1.0</version>
@@ -213,8 +213,7 @@
                     <revisionOnScmFailure>0</revisionOnScmFailure>
                 </configuration>
             </plugin>
-            <plugin>
-                <!-- shade plugin configuration is on parent pom.xml because of use for other modules -->
+            <plugin><!-- shade plugin configuration is on parent pom.xml because of use for other modules -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.5.0</version>
