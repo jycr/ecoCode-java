@@ -9,5 +9,6 @@
 
 	<modules>
 		<module>ecocode-java-plugin</module>
+		<module>ecocode-java-plugin-test-project</module>
 	</modules>
 </project>
