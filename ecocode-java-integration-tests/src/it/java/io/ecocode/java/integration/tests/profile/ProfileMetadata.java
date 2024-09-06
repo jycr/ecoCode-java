@@ -1,4 +1,4 @@
-package io.ecocode.java.integration.tests;
+package io.ecocode.java.integration.tests.profile;
 
 import java.util.List;
 

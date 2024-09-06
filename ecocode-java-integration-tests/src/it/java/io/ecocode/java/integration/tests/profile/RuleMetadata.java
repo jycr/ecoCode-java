@@ -1,4 +1,4 @@
-package io.ecocode.java.integration.tests;
+package io.ecocode.java.integration.tests.profile;
 
 public class RuleMetadata {
 	private String key;

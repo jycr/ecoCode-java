@@ -1,16 +1,15 @@
-package io.ecocode.java.integration.tests;
+package io.ecocode.java.integration.tests.profile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Base64;
 import java.util.List;
-import java.util.function.Supplier;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 /**
  * Manage XML Backup file of profile based on JSON official profile.
@@ -77,23 +76,21 @@ public class ProfileBackup {
 	);
 
 	private final ObjectMapper mapper;
-	private final Supplier<InputStream> jsonProfileSupplier;
+	private final URI jsonProfile;
 
-	public ProfileBackup(
-			Supplier<InputStream> jsonProfileSupplier
-	) {
+	public ProfileBackup(URI jsonProfile) {
 		this.mapper = new ObjectMapper();
 		// Ignore unknown properties
-		this.mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+		this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-		this.jsonProfileSupplier = jsonProfileSupplier;
+		this.jsonProfile = jsonProfile;
 	}
 
 	private transient ProfileMetadata _profileMetadata;
 
 	private ProfileMetadata profileMetadata() throws IOException {
 		if (_profileMetadata == null) {
-			try (InputStream profilJsonFile = jsonProfileSupplier.get()) {
+			try (InputStream profilJsonFile = jsonProfile.toURL().openStream()) {
 				_profileMetadata = mapper.readValue(profilJsonFile, ProfileMetadata.class);
 			}
 		}

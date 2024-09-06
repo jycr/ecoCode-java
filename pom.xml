@@ -12,4 +12,21 @@
 		<module>ecocode-java-plugin-test-project</module>
 		<module>ecocode-java-integration-tests</module>
 	</modules>
+
+	<properties>
+		<!-- URL of the Maven repository where sonarqube will be downloaded -->
+		<test-it.orchestrator.artifactory.url>https://repo1.maven.org/maven2</test-it.orchestrator.artifactory.url>
+		<!-- You can override this property to keep SonarQube instance running and to manually use it -->
+		<test-it.sonar.keepRunning>false</test-it.sonar.keepRunning>
+
+		<!-- Version of the SonarQube APIs used by `ecocode-java-plugin` -->
+		<sonarqube.version>9.4.0.54424</sonarqube.version>
+		<!-- Version of `sonarqube` used by integration tests (you can override this value to perform matrix compatibility tests) -->
+		<test-it.sonarqube.version>${sonarqube.version}</test-it.sonarqube.version>
+
+		<!-- Version of `sonar-java-plugin` that `ecocode-java-plugin` depends on  -->
+		<sonarjava.version>7.19.0.31550</sonarjava.version>
+		<!-- Version of `sonar-java-plugin` used by integration tests (you can override this value to perform matrix compatibility tests) -->
+		<test-it.sonarjava.version>${sonarjava.version}</test-it.sonarjava.version>
+	</properties>
 </project>

@@ -5,10 +5,22 @@
 	<parent>
 		<groupId>io.ecocode</groupId>
 		<artifactId>ecocode-java</artifactId>
-		<version>1.6.2-SNAPSHOT</version>
+		<version>1.6.3-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>ecocode-java-integration-tests</artifactId>
+
+	<properties>
+		<java.version>17</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<!-- to prevent message: system modules path not set in conjunction with -source 11 -->
+		<maven.compiler.release>${java.version}</maven.compiler.release>
+
+		<encoding>UTF-8</encoding>
+		<project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -16,38 +28,12 @@
 			<artifactId>ecocode-java-plugin</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.sonarsource.api.plugin</groupId>
-			<artifactId>sonar-plugin-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.17.2</version>
-		</dependency>
 
-		<dependency>
-			<groupId>org.sonarsource.orchestrator</groupId>
-			<artifactId>sonar-orchestrator-junit5</artifactId>
-			<version>4.9.0.1920</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>2.0.13</version>
-		</dependency>
 		<dependency>
 			<groupId>org.sonarsource.java</groupId>
 			<artifactId>test-classpath-reader</artifactId>
 			<version>7.34.0.35958</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.5.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.assertj</groupId>
@@ -56,16 +42,37 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.16.1</version>
+			<groupId>org.sonarsource.orchestrator</groupId>
+			<artifactId>sonar-orchestrator-junit5</artifactId>
+			<version>4.9.0.1920</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.maven</groupId>
-			<artifactId>maven-model</artifactId>
-			<version>3.9.8</version>
+			<groupId>org.sonarsource.sonarqube</groupId>
+			<artifactId>sonar-plugin-api</artifactId>
+			<version>${test-it.sonarqube.version}</version>
+			<scope>provided</scope>
 		</dependency>
+
+		<!--
+
+				<dependency>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+					<version>2.0.13</version>
+				</dependency>
+				<dependency>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-classic</artifactId>
+					<version>1.5.6</version>
+				</dependency>
+				<dependency>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+					<version>2.16.1</version>
+					<scope>test</scope>
+				</dependency>
+		-->
 	</dependencies>
 
 	<build>
@@ -117,6 +124,28 @@
 							<goal>integration-test</goal>
 							<goal>verify</goal>
 						</goals>
+						<configuration>
+							<systemPropertyVariables>
+								<test-it.sonar.keepRunning>${test-it.sonar.keepRunning}</test-it.sonar.keepRunning>
+								<test-it.orchestrator.artifactory.url>${test-it.orchestrator.artifactory.url}</test-it.orchestrator.artifactory.url>
+								<test-it.sonarqube.version>${test-it.sonarqube.version}</test-it.sonarqube.version>
+								<!-- Comma separated list of plugins (`groupId:artifactId:version`) to install in SonarQube instance before lunching integration tests -->
+								<test-it.plugins>
+									${project.baseUri}/../ecocode-java-plugin/target/ecocode-java-plugin-${project.version}.jar,
+									org.sonarsource.java:sonar-java-plugin:${sonarjava.version},
+								</test-it.plugins>
+								<!-- Comma separated JSON profile files to load -->
+								<test-it.additional-profiles>
+									${project.baseUri}/../ecocode-java-plugin/src/main/resources/fr/greencodeinitiative/java/ecoCode_way_profile.json,
+								</test-it.additional-profiles>
+								<!-- Path to "test project" to analyze -->
+								<test-it.test-project>${project.baseUri}/../ecocode-java-plugin-test-project</test-it.test-project>
+								<!-- Comma separated list of profiles to associate to "test project". Syntaxe: `language:profileName` -->
+								<test-it.test-project-profile-by-language>
+									java:ecoCode way,
+								</test-it.test-project-profile-by-language>
+							</systemPropertyVariables>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -126,27 +155,9 @@
 	<profiles>
 		<profile>
 			<id>keep-running</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-failsafe-plugin</artifactId>
-						<configuration>
-							<systemProperties>
-								<sonar.keepRunning>true</sonar.keepRunning>
-							</systemProperties>
-						</configuration>
-						<executions>
-							<execution>
-								<goals>
-									<goal>integration-test</goal>
-									<goal>verify</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
+			<properties>
+				<test-it.sonar.keepRunning>true</test-it.sonar.keepRunning>
+			</properties>
 		</profile>
 	</profiles>
 </project>

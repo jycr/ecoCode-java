@@ -1,144 +1,193 @@
 package io.ecocode.java.integration.tests;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.util.Objects;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonar.orchestrator.build.MavenBuild;
+import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
+import com.sonar.orchestrator.junit5.OrchestratorExtensionBuilder;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.URLLocation;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import io.ecocode.java.integration.tests.profile.ProfileBackup;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.sonar.java.test.classpath.TestClasspathUtils;
 
-import static fr.greencodeinitiative.java.JavaEcoCodeProfile.PROFILE_PATH;
-import static fr.greencodeinitiative.java.JavaRulesDefinition.LANGUAGE;
 import static java.lang.System.Logger.Level.INFO;
+import static java.util.Optional.ofNullable;
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LaunchSonarqubeAndBuildProjectIT {
 	private static final System.Logger LOGGER = System.getLogger(LaunchSonarqubeAndBuildProjectIT.class.getName());
 
-	private static final String PROJECT_KEY = "ecocode-java-checks-test-sources";
-	private static final String PROJECT_NAME = "ecoCode Java Checks Test Sources";
+	private static final String PROJECT_KEY = "ecocode-test-project";
+	private static final String PROJECT_NAME = "ecoCode test project";
 
-	private static final ProfileBackup PROFILE_BACKUP = new ProfileBackup(() -> ClassLoader.getSystemResourceAsStream(PROFILE_PATH));
-	private static OrchestratorExtension ORCHESTRATOR;
+	private static OrchestratorExtension orchestrator;
+
+	private static void launchSonarqube() {
+		String orchestratorArtifactoryUrl = getProperty("test-it.orchestrator.artifactory.url");
+		String sonarqubeVersion = getProperty("test-it.sonarqube.version");
+
+		OrchestratorExtensionBuilder orchestratorExtensionBuilder = OrchestratorExtension
+				.builderEnv()
+				.useDefaultAdminCredentialsForBuilds(true)
+				.setOrchestratorProperty("orchestrator.artifactory.url", orchestratorArtifactoryUrl)
+				.setSonarVersion(sonarqubeVersion)
+				.setServerProperty("sonar.forceAuthentication", "false")
+				.setServerProperty("sonar.web.javaOpts", "-Xmx1G");
+
+		additionalPluginsToInstall().forEach(orchestratorExtensionBuilder::addPlugin);
+		additionalProfiles().forEach(orchestratorExtensionBuilder::restoreProfileAtStartup);
+
+		orchestrator = orchestratorExtensionBuilder.build();
+		orchestrator.start();
+		LOGGER.log(INFO, () -> MessageFormat.format("SonarQube server available on: {0}", orchestrator.getServer().getUrl()));
+	}
+
+	private static void buildAndAnalyzeTestProfile() {
+		// run SonarQube Scanner
+		Server server = orchestrator.getServer();
+
+		server.provisionProject(PROJECT_KEY, PROJECT_NAME);
+		testProjectProfileByLanguage().forEach((language, profileName) -> {
+			server.associateProjectToQualityProfile(PROJECT_KEY, language, profileName);
+		});
+
+		MavenBuild build = MavenBuild.create(getTestProjectDir().resolve("pom.xml").toFile())
+		                             .setCleanPackageSonarGoals()
+		                             .setProperty("sonar.projectKey", PROJECT_KEY)
+		                             .setProperty("sonar.projectName", PROJECT_NAME)
+		                             .setProperty("sonar.scm.disabled", "true");
+
+		orchestrator.executeBuild(build);
+	}
 
 	@BeforeAll
 	static void setup() {
-		MavenLocation javaPlugin = MavenLocation.of(
-				"org.sonarsource.java",
-				"sonar-java-plugin",
-				getMavenProperty("sonarjava.version")
-		);
+		launchSonarqube();
+		buildAndAnalyzeTestProfile();
+	}
 
-		URLLocation profilePath = URLLocation.create(PROFILE_BACKUP.profileDataUri());
-
-		ORCHESTRATOR = OrchestratorExtension
-				.builderEnv()
-				.useDefaultAdminCredentialsForBuilds(true)
-				.setOrchestratorProperty("orchestrator.artifactory.url", getMavenProperty("orchestrator.artifactory.url"))
-				.setSonarVersion(getMavenProperty("sonarqube.version"))
-				.setServerProperty("sonar.forceAuthentication", "false")
-				.addPlugin(FileLocation.of(getEcoCodePluginPath().toFile()))
-				.addPlugin(javaPlugin)
-				.restoreProfileAtStartup(profilePath)
-				.setServerProperty("sonar.web.javaOpts", "-Xmx1G")
-				.build();
-		ORCHESTRATOR.start();
-		LOGGER.log(INFO, () -> MessageFormat.format("SonarQube server available on: {0}", ORCHESTRATOR.getServer().getUrl()));
+	@Test
+	void test() {
+		System.out.println("TEST");
 	}
 
 	@AfterAll
 	static void tearDown() {
-		if ("true".equalsIgnoreCase(System.getProperty("sonar.keepRunning"))) {
+		if ("true".equalsIgnoreCase(System.getProperty("test-it.sonar.keepRunning"))) {
 			try (Scanner in = new Scanner(System.in)) {
 				LOGGER.log(INFO, () ->
 						MessageFormat.format(
-								"\n" +
-										"\n====================================================================================================" +
-										"\nSonarQube available at: {0} (to login: admin/admin)" +
-										"\n====================================================================================================" +
-										"\n",
-								ORCHESTRATOR.getServer().getUrl()
+								"""
+
+										====================================================================================================
+										SonarQube available at: {0} (to login: admin/admin)
+										====================================================================================================
+
+										""",
+								orchestrator.getServer().getUrl()
 						)
 				);
 				do {
-					LOGGER.log(INFO, "✍ Please press ENTER to stop");
+					LOGGER.log(INFO, "✍ Please press CTRL+C to stop");
 				}
 				while (!in.nextLine().isEmpty());
 			}
 		}
-		if (ORCHESTRATOR != null) {
-			ORCHESTRATOR.stop();
+		if (orchestrator != null) {
+			orchestrator.stop();
 		}
-	}
-
-	/**
-	 * Path of the plugin project containing the implementation of the rule we are working on
-	 */
-	private static Path getEcoCodePluginPath() {
-		Path ecoCodePluginPath = TestClasspathUtils.findModuleJarPath("../ecocode-" + LANGUAGE + "-plugin").toAbsolutePath();
-		assertThat(ecoCodePluginPath).isRegularFile();
-		assertThat(ecoCodePluginPath).hasExtension("jar");
-		return ecoCodePluginPath;
 	}
 
 	/**
 	 * Path of the "test project"
 	 */
 	private static Path getTestProjectDir() {
-		Path testProjectDir = Path.of(".").resolve("../ecocode-" + LANGUAGE + "-test-project").toAbsolutePath();
+		Path testProjectDir = Path.of(URI.create(getProperty("test-it.test-project")));
 		assertThat(testProjectDir).isDirectory();
 		return testProjectDir;
 	}
 
-	/**
-	 * Path to the project `pom.xml` file defining the necessary properties.
-	 */
-	private static Path getProjectPom() {
-		Path pom = Path.of(".").resolve("../pom.xml").toAbsolutePath();
-		assertThat(pom).isRegularFile();
-		return pom;
+	private static Stream<String> splitAndTrimNullableString(String nullableString, String regexSeparator) {
+		return Optional.ofNullable(nullableString)
+		               .map(str -> str.split(regexSeparator))
+		               .stream()
+		               .flatMap(Arrays::stream)
+		               .map(String::trim)
+		               .filter(not(String::isEmpty));
 	}
 
-	@Test
-	void myTest() throws IOException {
-		// run SonarQube Scanner
-		ORCHESTRATOR.getServer().provisionProject(PROJECT_KEY, PROJECT_NAME);
-		ORCHESTRATOR.getServer().associateProjectToQualityProfile(PROJECT_KEY, PROFILE_BACKUP.language(), PROFILE_BACKUP.name());
-
-		MavenBuild build = MavenBuild.create(getTestProjectDir().resolve("pom.xml").toFile())
-		                             .setCleanPackageSonarGoals()
-//		                             .setDebugLogs(true)
-                                     .setProperty("sonar.projectKey", PROJECT_KEY)
-                                     .setProperty("sonar.projectName", PROJECT_NAME)
-                                     .setProperty("sonar.scm.disabled", "true");
-
-		ORCHESTRATOR.executeBuild(build);
+	private static Stream<String> systemPropertyCommaSeparatedValues(String propertyName) {
+		return splitAndTrimNullableString(System.getProperty(propertyName), "\\s*,\\s*");
 	}
 
-	private static String getMavenProperty(String propertyName) {
-		MavenXpp3Reader mavenReader = new MavenXpp3Reader();
-		try (Reader fileReader = Files.newBufferedReader(getProjectPom())) {
-			Model model = mavenReader.read(fileReader);
-			return Objects.requireNonNull(
-					model.getProperties().getProperty(propertyName),
-					() -> "Property `" + propertyName + "` must be defined in " + getProjectPom().toAbsolutePath()
-			);
-		} catch (XmlPullParserException | IOException e) {
-			throw new RuntimeException(e);
+	private static Set<Location> additionalPluginsToInstall() {
+		return systemPropertyCommaSeparatedValues("test-it.plugins")
+				.map(LaunchSonarqubeAndBuildProjectIT::toPluginLocation)
+				.collect(Collectors.toSet());
+	}
+
+	private static Set<URLLocation> additionalProfiles() {
+		return systemPropertyCommaSeparatedValues("test-it.additional-profiles")
+				.map(URI::create)
+				.map(ProfileBackup::new)
+				.map(ProfileBackup::profileDataUri)
+				.map(URLLocation::create)
+				.collect(Collectors.toSet());
+	}
+
+	private static Map<String, String> testProjectProfileByLanguage() {
+		return systemPropertyCommaSeparatedValues("test-it.test-project-profile-by-language")
+				.map(languageAndProfileStr -> splitAndTrimNullableString(languageAndProfileStr, "\\s*:\\s*")
+						.toList())
+				.filter(languageAndProfile -> languageAndProfile.size() == 2)
+				.collect(toMap(
+						// Language
+						languageAndProfile -> languageAndProfile.get(0),
+						// Profile name
+						languageAndProfile -> languageAndProfile.get(1)
+				));
+	}
+
+	private static Location toPluginLocation(String location) {
+		if (location.startsWith("file://")) {
+			try {
+				return FileLocation.of(URI.create(location).toURL());
+			} catch (MalformedURLException e) {
+				throw new IllegalArgumentException(e);
+			}
 		}
+		String[] pluginGAVvalues = location.split(":");
+		if (pluginGAVvalues.length != 3) {
+			throw new IllegalArgumentException("Invalid plugin GAV definition (`groupId:artifactId:version`): " + location);
+		}
+		return MavenLocation.of(
+				// groupId
+				pluginGAVvalues[0],
+				// artifactId
+				pluginGAVvalues[1],
+				// version
+				pluginGAVvalues[2]
+		);
+	}
+
+	private static String getProperty(String propertyName) {
+		return ofNullable(System.getProperty(propertyName)).orElseThrow(() -> new IllegalStateException("System property `" + propertyName + "` must be defined"));
 	}
 }
